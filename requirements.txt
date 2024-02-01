@@ -1,4 +1,3 @@
-pywin32==300
 fastapi==0.109.0
 fonttools==4.47.2
 h11==0.14.0
