@@ -1,4 +1,4 @@
-pywin32==306
+pywin32==300
 annotated-types==0.6.0
 anyio==4.2.0
 asttokens==2.4.1
