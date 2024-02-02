@@ -24,13 +24,13 @@ async def User_id(User_id:str):
     except Exception as e:
         return {"error": str(e)} 
     
-"""@app.get("/UserForGenre/{genero}")
+@app.get("/UserForGenre/{genero}")
 async def genero(genero: str):
     try:
         user_and_hours = UserForGenre(genero)
         return user_and_hours
     except Exception as e:
-        return {"error": str(e)}"""
+        return {"error": str(e)}
         
 @app.get("/best_developer_year/{año}")
 async def Best_developer_year(year: int):

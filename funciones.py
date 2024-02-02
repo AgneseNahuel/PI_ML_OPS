@@ -12,6 +12,7 @@ games = pd.read_csv("games.csv")
 df_reviews = pd.read_csv("user_reviews.csv")
 df_items = pd.read_csv("user_items.csv")
 data_steam = pd.read_csv("data_steam.csv")
+gender_dummies = pd.read_csv("genres_dummies.csv")
 
 #1
 def developer(desarrollador: str): 
@@ -71,31 +72,25 @@ def userdata(user_id: str):
     
     
 #No funciona y crashea todo
-"""def UserForGenre(genero: str):
+def UserForGenre(genero: str):
 
-    if genero not in games.columns:
+    if genero not in gender_dummies.columns:
         return {"error": f"'{genero}' no es un género válido"}
     
     resultado = {}
-
     # Filtrar df_reviews por el género especificado
-    df_genero = df_reviews.merge(games[games[genero] == 1], on="item_id")
+    df_genero = data_steam.merge(gender_dummies[gender_dummies[genero] == 1], on="item_id")
     
-    # Fusionar con df_items para obtener el tiempo jugado
-    df_genero = df_genero.merge(df_items, on="item_id", how="inner", suffixes=('reviews', 'items'))
-
-    # Encontrar el usuario con más horas jugadas para el género
+     # Encontrar el usuario con más horas jugadas para el género
     usuario_mas_horas = df_genero.groupby("user_id")["playtime_forever"].sum().idxmax()
+    
+    horas_por_año = df_genero.groupby("release_date")["playtime_forever"].sum().reset_index()
+    horas_por_año = [{"Año": int(año), "Horas": horas} for año, horas in zip(horas_por_año["release_date"], horas_por_año["playtime_forever"])]
 
-    # Obtener las horas jugadas por año
-    horas_por_año = df_genero.groupby("año_lanzamiento")["playtime_forever"].sum().reset_index()
-    horas_por_año = [{"Año": int(año), "Horas": horas} for año, horas in zip(horas_por_año["año_lanzamiento"], horas_por_año["playtime_forever"])]
-
-    # Almacenar resultados en el diccionario
     resultado["Usuario con más horas jugadas para Género X"] = usuario_mas_horas
     resultado["Horas jugadas"] = horas_por_año
     
-    return resultado"""
+    return resultado
     
 
 #4-------------------------------------------------------------------------------------------------------------
