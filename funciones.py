@@ -5,11 +5,13 @@ import pyarrow.csv as pq
 import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 
 games = pd.read_csv("games.csv")
 df_reviews = pd.read_csv("user_reviews.csv")
 df_items = pd.read_csv("user_items.csv")
+data_steam = pd.read_csv("data_steam.csv")
 
 #1
 def developer(desarrollador: str): 
@@ -139,40 +141,57 @@ def developer_reviews_analysis(desarrolladora:str):
  
 
 #ML MODELOS---------------------------------------------------------------------------------------------------
-def recomendacion_usuario( id_usuario ):
-    lista=[]
-    if id_usuario not in df_reviews['user_id'].unique():
-        return {'error': 'El usuario especificado no existe.'}
+def recomendacion_usuario(id_usuario):
     
-    #Crear una lista de juegos valorados por el usuario
-    juegos_valorados = games[df_reviews['user_id'] == id_usuario]['app_name'].unique()
+    #Seleccionar características (X) y la etiqueta (y)
+    X = data_steam[['item_id', 'release_date', 'price', 'sentiment_analysis', 'playtime_forever']]
+    y = data_steam['recommend']
 
-    #Crear una lista de todos los juegos disponibles
-    todos_los_juegos = games['app_name'].unique()
+    #Divide el conjunto de datos en conjuntos de entrenamiento y prueba
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    #Crear una lista de juegos no valorados por el usuario específico
-    juegos_no_valorados = list(set(todos_los_juegos) - set(juegos_valorados))
+    #Crea y entrena el modelo
+    modelo = RandomForestClassifier(n_estimators=100, random_state=42)
+    modelo.fit(X_train, y_train)
 
-    #Generar predicciones para los juegos no valorados por el usuario
-    predicciones = [games.predict(id_usuario, juego) for juego in juegos_no_valorados]
-
-    #Ordenar las predicciones en base a la valoración y obtener los juegos recomendados
-    recomendaciones = sorted(predicciones, key=lambda x: x.est, reverse=True)[:5]  # Obtener las 5 mejores recomendaciones
-
-  # Almacenar los nombres de los juegos recomendados en una lista
-    juegos_recomendados = [recomendacion.iid for recomendacion in recomendaciones]
     
-    # Crear un diccionario con los nombres de los juegos recomendados
-    recomendaciones_dict = {
-        'Juego 1': juegos_recomendados[0],
-        'Juego 2': juegos_recomendados[1],
-        'Juego 3': juegos_recomendados[2],
-        'Juego 4': juegos_recomendados[3],
-        'Juego 5': juegos_recomendados[4]
-    }
+    #------------------------------------------------------------------------------------------------------
     
-    # Devolver el diccionario con los nombres de los juegos recomendados
-    return recomendaciones_dict
+    # Verifica si el usuario existe en el conjunto de datos
+    if id_usuario not in data_steam['user_id'].values:
+        print(f'El usuario {id_usuario} no existe en el conjunto de datos.')
+        return None
+
+    # Filtra el conjunto de datos para obtener las características de juegos no etiquetados para el usuario
+    juegos_sin_etiqueta = data_steam[data_steam['user_id'] == id_usuario][['item_id', 'release_date', 'price', 'sentiment_analysis', 'playtime_forever']]
+
+    # Asegúrate de que haya al menos un juego sin etiquetar para el usuario
+    if juegos_sin_etiqueta.empty:
+        print(f'No hay juegos sin etiquetar para el usuario {id_usuario}.')
+        return None
+
+    # Utiliza el modelo entrenado para predecir las preferencias del usuario para los juegos sin etiquetar
+    preferencias_usuario = modelo.predict(juegos_sin_etiqueta)
+
+    # Combina las predicciones con la información del juego y selecciona los 5 mejores
+    juegos_sin_etiqueta['recommend'] = preferencias_usuario
+    juegos_recomendados = juegos_sin_etiqueta.sort_values(by='recommend', ascending=False).head(5)
+
+    # Realiza una fusión con el conjunto de datos original para obtener el nombre del juego
+    juegos_recomendados = pd.merge(juegos_recomendados, data_steam[['item_id', 'title']], on='item_id', how='left')
+
+    # Elimina duplicados basados en 'App_name'
+    juegos_recomendados = juegos_recomendados.drop_duplicates(subset='title')
+
+    # Reinicia el índice y luego incrementa en 1
+    juegos_recomendados.reset_index(drop=True, inplace=True)
+    juegos_recomendados.index += 1
+    
+    # Suponiendo que 'juegos_recomendados' es un DataFrame con las columnas mencionadas
+    datos_dict = juegos_recomendados[['title', 'release_date', 'price', 'sentiment_analysis', 'recommend', 'playtime_forever']].to_dict(orient='records')
+
+    return datos_dict
+
     
 
 def recommend_games(item_id):
