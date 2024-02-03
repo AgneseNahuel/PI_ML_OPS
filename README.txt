@@ -38,8 +38,16 @@ Los valores duplicados y nulos los elimine en el ETL.
 Modelo de aprendizaje automático:
 	Intente primero hacer la primera, no me salio y fui por la segunda, tarde mucho en estudiar bien lo que me pedia..., que sea item-item, la similitud del coseno que use cosine_similarity()
 en la funcion de recommend_games()
-	
+-----------------------------------------------------------------------------------	
 
+		LINK GITHUB
+https://github.com/AgneseNahuel/PI_ML_OPS
+
+		LINK PAGINA RENDER
+https://proyectoindividual-0dgz.onrender.com/docs
+
+		LINK PAGINA DE YOUTUBE
+https://www.youtube.com/watch?v=-hDX5ZSrDDs
 
 
 
