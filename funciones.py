@@ -71,7 +71,7 @@ def userdata(user_id: str):
     return resultado
     
     
-#No funciona y crashea todo
+#3
 def UserForGenre(genero: str):
 
     if genero not in gender_dummies.columns:
